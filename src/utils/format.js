@@ -15,12 +15,12 @@ export const formatImageUrl = (path) => {
   if (!path) return null;
   
   // If the path already includes http, it's an absolute URL
-  if (path.startsWith('https')) {
+  if (path.startsWith('http')) {
     return path;
   }
   
-  // Extract the API base URL (without the /api part)
-  const baseUrl = config.apiUrl.replace(/\/api$/, '');
+  // Use the REACT_APP_BASE_URL environment variable directly
+  const baseUrl = process.env.REACT_APP_BASE_URL || '';
   
   // Ensure path starts with /
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
