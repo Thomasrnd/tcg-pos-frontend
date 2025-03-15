@@ -5,7 +5,7 @@ import AdminLayout from '../../layouts/AdminLayout';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import productService from '../../api/product.service';
-import { formatIDR } from '../../utils/format';
+import { formatIDR, formatImageUrl } from '../../utils/format';
 
 const ProductList = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -135,7 +135,7 @@ const ProductList = () => {
                           <div className="flex items-center">
                             {product.imageUrl ? (
                               <img
-                                src={`http://localhost:3000${product.imageUrl}`}
+                                src={formatImageUrl(product.imageUrl)}
                                 alt={product.name}
                                 className="w-10 h-10 object-cover rounded mr-3"
                               />

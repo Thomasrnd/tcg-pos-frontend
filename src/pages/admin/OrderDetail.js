@@ -5,7 +5,7 @@ import AdminLayout from '../../layouts/AdminLayout';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import orderService from '../../api/order.service';
-import { formatIDR } from '../../utils/format';
+import { formatIDR, formatImageUrl } from '../../utils/format';
 
 const OrderDetail = () => {
   const { id } = useParams();
@@ -208,7 +208,7 @@ const OrderDetail = () => {
                                 <div className="flex items-center">
                                   {item.product.imageUrl ? (
                                     <img
-                                      src={`http://localhost:3000${item.product.imageUrl}`}
+                                      src={formatImageUrl(item.product.imageUrl)}
                                       alt={item.product.name}
                                       className="w-8 h-8 object-cover rounded mr-2"
                                     />
@@ -243,7 +243,7 @@ const OrderDetail = () => {
                   <Card title="Payment Proof" className="mb-6">
                     <div className="flex flex-col items-center">
                       <img
-                        src={`http://localhost:3000${order.paymentProof.fileUrl}`}
+                        src={formatImageUrl(order.paymentProof.fileUrl)}
                         alt="Payment proof"
                         className="w-full max-w-xs rounded border mb-2"
                       />

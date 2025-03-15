@@ -4,7 +4,7 @@ import CustomerLayout from '../../layouts/CustomerLayout';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import { useCart } from '../../contexts/CartContext';
-import { formatIDR } from '../../utils/format';
+import { formatIDR, formatImageUrl } from '../../utils/format';
 
 const ShoppingCart = () => {
   const { cartItems, updateQuantity, removeFromCart, calculateTotal, clearCart } = useCart();
@@ -76,7 +76,7 @@ const ShoppingCart = () => {
                           <div className="flex items-center">
                             {item.imageUrl ? (
                               <img
-                                src={`http://localhost:3000${item.imageUrl}`}
+                                src={formatImageUrl(item.imageUrl)}
                                 alt={item.name}
                                 className="w-10 h-10 object-cover rounded mr-3"
                               />

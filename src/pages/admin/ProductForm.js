@@ -5,6 +5,7 @@ import AdminLayout from '../../layouts/AdminLayout';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import productService from '../../api/product.service';
+import { formatImageUrl } from '../../utils/format';
 
 const ProductForm = () => {
   const { id } = useParams();
@@ -41,7 +42,7 @@ const ProductForm = () => {
         });
         
         if (product.imageUrl) {
-          setImagePreview(`http://localhost:3000${product.imageUrl}`);
+          setImagePreview(formatImageUrl(product.imageUrl));
         }
       },
     }

@@ -4,7 +4,7 @@ import AdminLayout from '../../layouts/AdminLayout';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import reportService from '../../api/report.service';
-import { formatIDR } from '../../utils/format';
+import { formatIDR, formatImageUrl } from '../../utils/format';
 
 const Reports = () => {
   const [selectedDate, setSelectedDate] = useState(
@@ -126,7 +126,7 @@ const Reports = () => {
                           <div className="flex items-center">
                             {product.imageUrl ? (
                               <img
-                                src={`http://localhost:3000${product.imageUrl}`}
+                                src={formatImageUrl(product.imageUrl)}
                                 alt={product.name}
                                 className="w-8 h-8 object-cover rounded mr-3"
                               />
