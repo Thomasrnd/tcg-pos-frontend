@@ -19,8 +19,8 @@ export const formatImageUrl = (path) => {
     return path;
   }
   
-  // Use the REACT_APP_BASE_URL environment variable directly
-  const baseUrl = process.env.REACT_APP_API_URL || '';
+  // Extract the API base URL (without the /api part)
+  const baseUrl = process.env.REACT_APP_BASE_URL || '';
   
   // Ensure path starts with /
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
