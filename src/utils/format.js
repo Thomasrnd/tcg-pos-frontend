@@ -15,7 +15,7 @@ export const formatImageUrl = (path) => {
   if (!path) return null;
   
   // If the path already includes http, it's an absolute URL
-  if (path.startsWith('http')) {
+  if (path.startsWith('https')) {
     return path;
   }
   
