@@ -7,7 +7,7 @@ import Card from '../../components/common/Card';
 import Toast from '../../components/common/Toast';
 import { useCart } from '../../contexts/CartContext';
 import productService from '../../api/product.service';
-import { formatIDR } from '../../utils/format';
+import { formatIDR, formatImageUrl } from '../../utils/format';
 
 const ProductCatalog = () => {
   const [filter, setFilter] = useState('ALL');
@@ -84,7 +84,7 @@ const ProductCatalog = () => {
               <div className="flex-1">
                 {product.imageUrl ? (
                   <img
-                    src={`http://localhost:3000${product.imageUrl}`}
+                    src={formatImageUrl(product.imageUrl)}
                     alt={product.name}
                     className="w-full h-48 object-cover mb-4 rounded"
                   />
