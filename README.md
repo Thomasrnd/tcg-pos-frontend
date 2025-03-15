@@ -25,6 +25,10 @@
    npm install
 4. Create a .env file in the root directory with the following variables:
    ```
+   # API Configuration
+   REACT_APP_API_URL=http://localhost:3000/api
+   
+   # Other Configuration
    PORT=3001
 6. Start the development server:
    ```bash
