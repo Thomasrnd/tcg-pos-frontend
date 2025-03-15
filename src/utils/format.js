@@ -20,7 +20,7 @@ export const formatImageUrl = (path) => {
   }
   
   // Use the REACT_APP_BASE_URL environment variable directly
-  const baseUrl = process.env.REACT_APP_BASE_URL || '';
+  const baseUrl = process.env.REACT_APP_API_URL || '';
   
   // Ensure path starts with /
   const normalizedPath = path.startsWith('/') ? path : `/${path}`;
