@@ -173,9 +173,9 @@ const Checkout = () => {
                   Please transfer the total amount to the following account:
                 </p>
                 <div className="bg-gray-100 p-4 rounded mb-4">
-                  <p className="font-medium">Bank: Example Bank</p>
-                  <p className="font-medium">Account: 123-456-7890</p>
-                  <p className="font-medium">Name: TCG Shop</p>
+                  <p className="font-medium">Bank: BCA</p>
+                  <p className="font-medium">Account: 5931065361</p>
+                  <p className="font-medium">Name: Vincentius Geoffrey</p>
                   <p className="font-medium">Amount: {formatIDR(totalAmount)}</p>
                 </div>
                 <p className="text-gray-600 mb-4">

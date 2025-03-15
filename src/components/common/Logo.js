@@ -9,7 +9,7 @@ const Logo = ({ size = 'medium' }) => {
   
   return (
     <div className={`font-bold ${sizes[size]} text-blue-600`}>
-      TCG Shop
+      Fourseason
     </div>
   );
 };
