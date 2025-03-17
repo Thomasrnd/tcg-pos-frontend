@@ -1,3 +1,4 @@
+// src/pages/admin/ProductList.js
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from 'react-query';
@@ -5,6 +6,7 @@ import AdminLayout from '../../layouts/AdminLayout';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import productService from '../../api/product.service';
+import categoryService from '../../api/category.service';
 import { formatIDR, formatImageUrl } from '../../utils/format';
 
 const ProductList = () => {
@@ -12,13 +14,23 @@ const ProductList = () => {
   const [categoryFilter, setCategoryFilter] = useState('');
   const queryClient = useQueryClient();
   
+  // Fetch categories
+  const { data: categoriesData } = useQuery(
+    'categories',
+    () => categoryService.getAllCategories()
+  );
+  
   // Fetch products with filters
   const { data, isLoading, error } = useQuery(
     ['products', searchTerm, categoryFilter],
     () => productService.getAllProducts({ 
       search: searchTerm || undefined,
-      category: categoryFilter || undefined
-    })
+      categoryId: categoryFilter || undefined
+    }),
+    {
+      // This will refetch when the dependencies change
+      refetchOnWindowFocus: false
+    }
   );
   
   // Delete product mutation
@@ -33,6 +45,7 @@ const ProductList = () => {
   );
   
   const products = data?.data || [];
+  const categories = categoriesData?.data || [];
   
   const handleDelete = (productId) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
@@ -40,24 +53,29 @@ const ProductList = () => {
     }
   };
   
-  const categories = [
-    { id: '', name: 'All Categories' },
-    { id: 'TCG_CARD', name: 'TCG Cards' },
-    { id: 'ACCESSORY', name: 'Accessories' },
-    { id: 'BEVERAGE', name: 'Beverages' },
-    { id: 'OTHER', name: 'Others' }
-  ];
+  // Function to get category name by ID
+  const getCategoryName = (categoryId) => {
+    const category = categories.find(cat => cat.id === categoryId);
+    return category ? category.name : 'Unknown';
+  };
   
   return (
     <AdminLayout>
       <div className="mb-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-800">Products</h1>
-          <Link to="/admin/products/new">
-            <Button variant="primary">
-              Add New Product
-            </Button>
-          </Link>
+          <div className="flex space-x-2">
+            <Link to="/admin/categories">
+              <Button variant="secondary">
+                Manage Categories
+              </Button>
+            </Link>
+            <Link to="/admin/products/new">
+              <Button variant="primary">
+                Add New Product
+              </Button>
+            </Link>
+          </div>
         </div>
         
         {/* Filters */}
@@ -87,6 +105,7 @@ const ProductList = () => {
                 onChange={(e) => setCategoryFilter(e.target.value)}
                 className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
+                <option value="">All Categories</option>
                 {categories.map(category => (
                   <option key={category.id} value={category.id}>
                     {category.name}
@@ -156,7 +175,7 @@ const ProductList = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                            {product.category}
+                            {product.category?.name || getCategoryName(product.categoryId)}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">

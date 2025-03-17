@@ -1,3 +1,4 @@
+// src/contexts/AuthContext.js
 import { createContext, useState, useEffect, useContext } from 'react';
 import authService from '../api/auth.service';
 
@@ -56,12 +57,18 @@ export const AuthProvider = ({ children }) => {
     setCurrentUser(null);
   };
 
+  // Check if current user is a master admin
+  const isMasterAdmin = () => {
+    return currentUser && currentUser.role === 'MASTER_ADMIN';
+  };
+
   const value = {
     currentUser,
     loading,
     error,
     login,
     logout,
+    isMasterAdmin,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

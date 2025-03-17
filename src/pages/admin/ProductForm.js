@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from 'react-query';
 import AdminLayout from '../../layouts/AdminLayout';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
+import categoryService from '../../api/category.service';
 import productService from '../../api/product.service';
 import { formatImageUrl } from '../../utils/format';
 
@@ -61,6 +62,12 @@ const ProductForm = () => {
         setError(error.response?.data?.message || 'Failed to create product');
       },
     }
+  );
+
+  // Fetch categories
+  const { data: categoriesData } = useQuery(
+    'categories',
+    () => categoryService.getAllCategories()
   );
   
   // Update product mutation
@@ -123,12 +130,7 @@ const ProductForm = () => {
     }
   };
   
-  const categories = [
-    { id: 'TCG_CARD', name: 'TCG Cards' },
-    { id: 'ACCESSORY', name: 'Accessories' },
-    { id: 'BEVERAGE', name: 'Beverages' },
-    { id: 'OTHER', name: 'Others' },
-  ];
+  const categories = categoriesData?.data || [];
   
   return (
     <AdminLayout>
@@ -215,17 +217,18 @@ const ProductForm = () => {
                 
                 {/* Category */}
                 <div>
-                  <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700 mb-1">
                     Category *
                   </label>
                   <select
-                    id="category"
-                    name="category"
-                    value={formData.category}
+                    id="categoryId"
+                    name="categoryId"
+                    value={formData.categoryId}
                     onChange={handleInputChange}
                     className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   >
+                    <option value="">Select a category</option>
                     {categories.map((category) => (
                       <option key={category.id} value={category.id}>
                         {category.name}

@@ -1,3 +1,4 @@
+// src/layouts/AdminLayout.js
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from 'react-query';
@@ -7,7 +8,7 @@ import orderService from '../api/order.service';
 
 const AdminLayout = ({ children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, isMasterAdmin } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   
@@ -31,12 +32,18 @@ const AdminLayout = ({ children }) => {
     return location.pathname === path ? 'bg-blue-700' : '';
   };
   
+  // Base navigation items for all admins
   const navItems = [
     { name: 'Dashboard', path: '/admin/dashboard', icon: 'chart-pie' },
     { name: 'Products', path: '/admin/products', icon: 'cube' },
     { name: 'Orders', path: '/admin/orders', icon: 'shopping-cart' },
     { name: 'Reports', path: '/admin/reports', icon: 'document-report' },
   ];
+  
+  // Add Admin Management link for master admin
+  if (isMasterAdmin()) {
+    navItems.push({ name: 'Add Admin', path: '/admin/admins', icon: 'user-group' });
+  }
   
   return (
     <div className="min-h-screen flex flex-col bg-gray-100">
@@ -76,7 +83,14 @@ const AdminLayout = ({ children }) => {
               <div className="ml-4 flex items-center md:ml-6">
                 <div className="relative">
                   <div className="flex items-center">
-                    <span className="mr-3">{currentUser?.username}</span>
+                    <span className="mr-3">
+                      {currentUser?.username}
+                      {isMasterAdmin() && (
+                        <span className="ml-2 text-xs bg-yellow-500 text-white px-2 py-1 rounded-full">
+                          Master
+                        </span>
+                      )}
+                    </span>
                     <button
                       onClick={handleLogout}
                       className="bg-blue-700 p-1 rounded-full hover:bg-blue-800"
@@ -134,7 +148,14 @@ const AdminLayout = ({ children }) => {
             <div className="pt-4 pb-3 border-t border-blue-700">
               <div className="flex items-center px-5">
                 <div className="ml-3">
-                  <div className="text-base font-medium">{currentUser?.username}</div>
+                  <div className="text-base font-medium">
+                    {currentUser?.username}
+                    {isMasterAdmin() && (
+                      <span className="ml-2 text-xs bg-yellow-500 text-white px-2 py-1 rounded-full">
+                        Master
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="mt-3 px-2 space-y-1">

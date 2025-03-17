@@ -3,7 +3,7 @@ import { QueryClient, QueryClientProvider } from 'react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 
-// Import pages (we'll create these later)
+// Import pages
 import LandingPage from './pages/landing/LandingPage';
 import AdminLogin from './pages/admin/AdminLogin';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -11,6 +11,8 @@ import ProductList from './pages/admin/ProductList';
 import ProductForm from './pages/admin/ProductForm';
 import OrderList from './pages/admin/OrderList';
 import OrderDetail from './pages/admin/OrderDetail';
+import AdminManagement from './pages/admin/AdminManagement';
+import CategoryManagement from './pages/admin/CategoryManagement';
 import CustomerNameEntry from './pages/customer/CustomerNameEntry';
 import ProductCatalog from './pages/customer/ProductCatalog';
 import ShoppingCart from './pages/customer/ShoppingCart';
@@ -67,6 +69,16 @@ function App() {
               <Route path="/admin/reports" element={
                 <ProtectedRoute>
                   <Reports />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/admins" element={
+                <ProtectedRoute>
+                  <AdminManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/categories" element={
+                <ProtectedRoute>
+                  <CategoryManagement />
                 </ProtectedRoute>
               } />
 
