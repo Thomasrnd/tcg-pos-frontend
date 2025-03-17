@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import CustomerLayout from '../../layouts/CustomerLayout';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
+import categoryService from '../../api/category.service';
 import Toast from '../../components/common/Toast';
 import { useCart } from '../../contexts/CartContext';
 import productService from '../../api/product.service';
@@ -20,17 +21,16 @@ const ProductCatalog = () => {
     productService.getAllProducts({ inStock: 'true' })
   );
   
+  // Fetch categories
+  const { data: categoriesData } = useQuery('categories', () => categoryService.getAllCategories());
   const categories = [
     { id: 'ALL', name: 'All Products' },
-    { id: 'TCG_CARD', name: 'TCG Cards' },
-    { id: 'ACCESSORY', name: 'Accessories' },
-    { id: 'BEVERAGE', name: 'Beverages' },
-    { id: 'OTHER', name: 'Others' }
+    ...(categoriesData?.data?.map(cat => ({ id: cat.id.toString(), name: cat.name })) || [])
   ];
   
   // Filter products by category
   const filteredProducts = data?.data?.filter(product => 
-    filter === 'ALL' || product.category === filter
+    filter === 'ALL' || product.categoryId.toString() === filter
   ) || [];
   
   const handleAddToCart = (product) => {
