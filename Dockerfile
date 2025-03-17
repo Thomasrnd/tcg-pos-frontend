@@ -3,8 +3,6 @@ FROM node:22-alpine AS builder
 # Set working directory
 WORKDIR /app
 
-RUN apk add --no-cache git 
-
 COPY . .
 
 # Install dependencies
@@ -20,9 +18,6 @@ WORKDIR /app
 
 # Copy built files and dependencies from builder stage
 COPY --from=builder /app /app
-
-# Set environment variables
-ENV PORT=3001
 
 # Expose the port
 EXPOSE 3001
