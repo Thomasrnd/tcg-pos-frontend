@@ -1,4 +1,4 @@
-FROM --platform=linux/ARM64 node:22-alpine AS builder
+FROM node:22-alpine AS builder
 
 # Set working directory
 WORKDIR /app
@@ -12,7 +12,7 @@ RUN npm install
 RUN npm run build
 
 # Use a smaller runtime image
-FROM --platform=linux/ARM64 node:22-alpine AS runtime
+FROM node:22-alpine AS runtime
 
 WORKDIR /app
 
