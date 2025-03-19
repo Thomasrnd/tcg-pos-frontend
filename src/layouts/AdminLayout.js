@@ -42,7 +42,10 @@ const AdminLayout = ({ children }) => {
   
   // Add Admin Management link for master admin
   if (isMasterAdmin()) {
-    navItems.push({ name: 'Add Admin', path: '/admin/admins', icon: 'user-group' });
+    navItems.push(
+      { name: 'Admin Management', path: '/admin/admins', icon: 'user-group' },
+      { name: 'Payment Settings', path: '/admin/payment-settings', icon: 'credit-card' }
+    );
   }
   
   return (

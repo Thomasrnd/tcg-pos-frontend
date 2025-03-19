@@ -1,3 +1,4 @@
+// src/pages/customer/OrderConfirmation.js
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from 'react-query';
@@ -29,6 +30,21 @@ const OrderConfirmation = () => {
     console.log("Continue shopping clicked");
     setShowPopup(false);
     navigate('/order/products');
+  };
+
+  const getPaymentMethodName = (method) => {
+    switch (method) {
+      case 'BANK_TRANSFER':
+        return 'Bank Transfer';
+      case 'CASH':
+        return 'Cash';
+      case 'CREDIT_CARD':
+        return 'Credit Card';
+      case 'E_WALLET':
+        return 'E-Wallet';
+      default:
+        return method;
+    }
   };
   
   return (
@@ -109,6 +125,11 @@ const OrderConfirmation = () => {
               </div>
               
               <div>
+                <p className="font-medium text-gray-700">Payment Method:</p>
+                <p>{getPaymentMethodName(order.paymentMethod)}</p>
+              </div>
+              
+              <div>
                 <p className="font-medium text-gray-700">Status:</p>
                 <p>
                   {order.status === 'PENDING' && 'Pending'}
@@ -140,10 +161,17 @@ const OrderConfirmation = () => {
               
               <div className="border-t pt-4">
                 <p className="font-medium text-gray-700 mb-2">Instructions:</p>
-                <p className="text-gray-600">
-                  Your order will be processed as soon as your payment is verified.
-                  Please proceed to the cashier to collect your items.
-                </p>
+                {order.paymentMethod === 'CASH' ? (
+                  <p className="text-gray-600">
+                    Your order will be processed immediately.
+                    Please proceed to the cashier to pay {formatIDR(order.totalAmount)} and collect your items.
+                  </p>
+                ) : (
+                  <p className="text-gray-600">
+                    Your order will be processed as soon as your payment is verified.
+                    Please proceed to the cashier to collect your items.
+                  </p>
+                )}
               </div>
             </div>
           </Card>

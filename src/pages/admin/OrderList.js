@@ -1,3 +1,4 @@
+// src/pages/admin/OrderList.js
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from 'react-query';
@@ -9,14 +10,16 @@ import { formatIDR } from '../../utils/format';
 
 const OrderList = () => {
   const [statusFilter, setStatusFilter] = useState('');
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState('');
   const [customerFilter, setCustomerFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   
   // Fetch orders with filters
   const { data, isLoading, error } = useQuery(
-    ['orders', statusFilter, customerFilter, currentPage],
+    ['orders', statusFilter, paymentMethodFilter, customerFilter, currentPage],
     () => orderService.getAllOrders({ 
       status: statusFilter || undefined,
+      paymentMethod: paymentMethodFilter || undefined,
       customerName: customerFilter || undefined,
       page: currentPage,
       limit: 10
@@ -47,6 +50,21 @@ const OrderList = () => {
     }
   };
   
+  const getPaymentMethodBadgeColor = (method) => {
+    switch (method) {
+      case 'BANK_TRANSFER':
+        return 'bg-purple-100 text-purple-800';
+      case 'CASH':
+        return 'bg-green-100 text-green-800';
+      case 'CREDIT_CARD':
+        return 'bg-blue-100 text-blue-800';
+      case 'E_WALLET':
+        return 'bg-indigo-100 text-indigo-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+  
   const getStatusText = (status) => {
     switch (status) {
       case 'PENDING':
@@ -61,6 +79,21 @@ const OrderList = () => {
         return 'Cancelled';
       default:
         return status;
+    }
+  };
+  
+  const getPaymentMethodText = (method) => {
+    switch (method) {
+      case 'BANK_TRANSFER':
+        return 'Bank Transfer';
+      case 'CASH':
+        return 'Cash';
+      case 'CREDIT_CARD':
+        return 'Credit Card';
+      case 'E_WALLET':
+        return 'E-Wallet';
+      default:
+        return method;
     }
   };
   
@@ -79,6 +112,14 @@ const OrderList = () => {
     { value: 'PAYMENT_VERIFIED', label: 'Payment Verified' },
     { value: 'COMPLETED', label: 'Completed' },
     { value: 'CANCELLED', label: 'Cancelled' },
+  ];
+  
+  const paymentMethodOptions = [
+    { value: '', label: 'All Payment Methods' },
+    { value: 'BANK_TRANSFER', label: 'Bank Transfer' },
+    { value: 'CASH', label: 'Cash' },
+    { value: 'CREDIT_CARD', label: 'Credit Card' },
+    { value: 'E_WALLET', label: 'E-Wallet' },
   ];
   
   return (
@@ -120,6 +161,24 @@ const OrderList = () => {
                 ))}
               </select>
             </div>
+            
+            <div className="md:w-48">
+              <label htmlFor="paymentMethod" className="block text-sm font-medium text-gray-700 mb-1">
+                Payment Method
+              </label>
+              <select
+                id="paymentMethod"
+                value={paymentMethodFilter}
+                onChange={(e) => setPaymentMethodFilter(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                {paymentMethodOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </Card>
         
@@ -148,6 +207,9 @@ const OrderList = () => {
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Total
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Payment
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Status
@@ -185,6 +247,11 @@ const OrderList = () => {
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getPaymentMethodBadgeColor(order.paymentMethod)}`}>
+                              {getPaymentMethodText(order.paymentMethod)}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(order.status)}`}>
                               {getStatusText(order.status)}
                             </span>
@@ -200,7 +267,7 @@ const OrderList = () => {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
+                        <td colSpan="7" className="px-6 py-4 text-center text-gray-500">
                           No orders found
                         </td>
                       </tr>

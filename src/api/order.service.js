@@ -1,3 +1,5 @@
+// src/api/order.service.js
+
 import apiClient from './client';
 
 const createOrder = async (orderData) => {
@@ -20,6 +22,12 @@ const uploadPaymentProof = async (orderId, file) => {
 
 const getOrderById = async (id) => {
   const response = await apiClient.get(`/orders/${id}`);
+  return response.data;
+};
+
+// New function to get available payment methods
+const getPaymentMethods = async () => {
+  const response = await apiClient.get('/orders/payment-methods/available');
   return response.data;
 };
 
@@ -64,6 +72,7 @@ const orderService = {
   cancelOrder,
   getPendingOrdersCount,
   getSalesSummary,
+  getPaymentMethods,
 };
 
 export default orderService;
