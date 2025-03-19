@@ -7,6 +7,7 @@ import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 import { useCart } from '../../contexts/CartContext';
 import orderService from '../../api/order.service';
+import paymentSettingsService from '../../api/payment-settings.service';
 import { formatIDR } from '../../utils/format';
 
 const Checkout = () => {
@@ -25,7 +26,19 @@ const Checkout = () => {
     () => orderService.getPaymentMethods()
   );
   
+  // Fetch bank details if bank transfer is selected
+  const { data: bankDetailsData, isLoading: bankDetailsLoading } = useQuery(
+    ['paymentMethodDetail', 'BANK_TRANSFER'],
+    () => paymentSettingsService.getPaymentMethodDetail('BANK_TRANSFER'),
+    {
+      enabled: selectedPaymentMethod === 'BANK_TRANSFER'
+    }
+  );
+
+  const bankDetails = bankDetailsData?.data;
   const paymentMethods = paymentMethodsData?.data?.methods || [];
+
+  
   
   // Redirect to products if cart is empty
   useEffect(() => {
@@ -233,10 +246,18 @@ const Checkout = () => {
                     Please transfer the total amount to the following account:
                   </p>
                   <div className="bg-gray-100 p-4 rounded mb-4">
-                    <p className="font-medium">Bank: BCA</p>
-                    <p className="font-medium">Account: 5931065361</p>
-                    <p className="font-medium">Name: Vincentius Geoffrey</p>
-                    <p className="font-medium">Amount: {formatIDR(totalAmount)}</p>
+                    {bankDetailsLoading ? (
+                      <p>Loading bank details...</p>
+                    ) : bankDetails && (bankDetails.bankName || bankDetails.accountNumber || bankDetails.accountHolder) ? (
+                      <>
+                        <p className="font-medium">Bank: {bankDetails.bankName || 'Not configured'}</p>
+                        <p className="font-medium">Account: {bankDetails.accountNumber || 'Not configured'}</p>
+                        <p className="font-medium">Name: {bankDetails.accountHolder || 'Not configured'}</p>
+                        <p className="font-medium">Amount: {formatIDR(totalAmount)}</p>
+                      </>
+                    ) : (
+                      <p className="text-yellow-600">Bank account details not configured. Please contact staff.</p>
+                    )}
                   </div>
                   <p className="text-gray-600 mb-4">
                     After making the payment, please upload your payment proof below.

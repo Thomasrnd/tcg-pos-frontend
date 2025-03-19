@@ -11,9 +11,15 @@ const updatePaymentMethodSetting = async (id, data) => {
   return response.data;
 };
 
+const getPaymentMethodDetail = async (method) => {
+  const response = await apiClient.get(`/payment-settings/method/${method}`);
+  return response.data;
+};
+
 const paymentSettingsService = {
   getAllPaymentMethodSettings,
   updatePaymentMethodSetting,
+  getPaymentMethodDetail,
 };
 
 export default paymentSettingsService;
