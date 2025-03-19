@@ -1,3 +1,4 @@
+// src/pages/admin/Reports.js
 import React, { useState } from 'react';
 import { useMutation } from 'react-query';
 import AdminLayout from '../../layouts/AdminLayout';
@@ -93,6 +94,39 @@ const Reports = () => {
                 <div className="bg-purple-50 p-4 rounded-lg">
                   <h3 className="text-sm font-medium text-purple-800 mb-1">Items Sold</h3>
                   <p className="text-2xl font-bold text-purple-700">{reportData.totalItems}</p>
+                </div>
+              </div>
+
+              {/* Payment Methods Breakdown */}
+              <div className="mb-6">
+                <h3 className="text-lg font-medium text-gray-800 mb-3">Payment Methods</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                  {reportData.paymentMethods.map(method => (
+                    <div
+                      key={method.method}
+                      className={`p-4 rounded-lg ${
+                        method.method === 'BANK_TRANSFER' ? 'bg-purple-50' :
+                        method.method === 'CASH' ? 'bg-green-50' :
+                        method.method === 'CREDIT_CARD' ? 'bg-blue-50' :
+                        method.method === 'E_WALLET' ? 'bg-indigo-50' :
+                        'bg-gray-50'
+                      }`}
+                    >
+                      <h4 className="text-sm font-medium text-gray-700 mb-1">
+                        {method.method === 'BANK_TRANSFER' ? 'Bank Transfer' :
+                        method.method === 'CASH' ? 'Cash' :
+                        method.method === 'CREDIT_CARD' ? 'Credit Card' :
+                        method.method === 'E_WALLET' ? 'E-Wallet' :
+                        method.method}
+                      </h4>
+                      <p className="text-2xl font-bold">
+                        {formatIDR(method.amount)}
+                      </p>
+                      <p className="text-sm text-gray-500">
+                        {method.count} order{method.count !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
 

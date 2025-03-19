@@ -1,6 +1,7 @@
+// src/pages/customer/Checkout.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useMutation } from 'react-query';
+import { useMutation, useQuery } from 'react-query';
 import CustomerLayout from '../../layouts/CustomerLayout';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
@@ -13,9 +14,18 @@ const Checkout = () => {
   const [paymentFile, setPaymentFile] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
   const [error, setError] = useState('');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState('BANK_TRANSFER');
   const navigate = useNavigate();
   
   const totalAmount = calculateTotal();
+  
+  // Fetch available payment methods
+  const { data: paymentMethodsData, isLoading: paymentMethodsLoading } = useQuery(
+    'paymentMethods',
+    () => orderService.getPaymentMethods()
+  );
+  
+  const paymentMethods = paymentMethodsData?.data?.methods || [];
   
   // Redirect to products if cart is empty
   useEffect(() => {
@@ -51,23 +61,27 @@ const Checkout = () => {
         
         const orderId = data.data.id;
         
-        // Upload payment proof
-        try {
-          console.log('Uploading payment proof for order:', orderId);
-          const uploadResult = await uploadPaymentProofMutation.mutateAsync({
-            orderId: orderId,
-            file: paymentFile
-          });
-          console.log('Payment proof uploaded successfully:', uploadResult);
-          
-          // Only clear cart and redirect on successful upload
-          clearCart();
-          alert(`Order Completed! Please collect your items at the cashier. Your Order ID: ${orderId}`);
-          navigate('/order/products');
-        } catch (err) {
-          console.error('Failed to upload payment proof:', err);
-          setError('Order created but failed to upload payment proof. Please contact support.');
+        // For payment methods that require proof (like bank transfer), upload it
+        const selectedMethod = paymentMethods.find(m => m.id === selectedPaymentMethod);
+        if (selectedMethod?.requiresProof && paymentFile) {
+          try {
+            console.log('Uploading payment proof for order:', orderId);
+            const uploadResult = await uploadPaymentProofMutation.mutateAsync({
+              orderId: orderId,
+              file: paymentFile
+            });
+            console.log('Payment proof uploaded successfully:', uploadResult);
+          } catch (err) {
+            console.error('Failed to upload payment proof:', err);
+            setError('Order created but failed to upload payment proof. Please contact support.');
+            return;
+          }
         }
+        
+        // Clear cart and redirect
+        clearCart();
+        alert(`Order Completed! Please collect your items at the cashier. Your Order ID: ${orderId}`);
+        navigate('/order/products');
       },
       onError: (error) => {
         console.error('Failed to create order:', error);
@@ -92,6 +106,16 @@ const Checkout = () => {
     }
   };
   
+  const handlePaymentMethodChange = (e) => {
+    setSelectedPaymentMethod(e.target.value);
+    // If switching to a method that doesn't need proof, clear any uploaded file
+    const methodRequiresProof = paymentMethods.find(m => m.id === e.target.value)?.requiresProof;
+    if (!methodRequiresProof) {
+      setPaymentFile(null);
+      setFilePreview(null);
+    }
+  };
+  
   const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
@@ -108,8 +132,9 @@ const Checkout = () => {
       return;
     }
     
-    // Validate payment proof
-    if (!paymentFile) {
+    // Check if payment proof is required but not provided
+    const selectedMethod = paymentMethods.find(m => m.id === selectedPaymentMethod);
+    if (selectedMethod?.requiresProof && !paymentFile) {
       setError('Please upload payment proof before placing your order');
       return;
     }
@@ -117,6 +142,7 @@ const Checkout = () => {
     // Format order data
     const orderData = {
       customerName,
+      paymentMethod: selectedPaymentMethod,
       items: cartItems.map(item => ({
         productId: item.productId,
         quantity: item.quantity
@@ -132,6 +158,9 @@ const Checkout = () => {
   if (cartItems.length === 0) {
     return null; // Will redirect in useEffect
   }
+  
+  // Determine if selected payment method requires proof
+  const selectedMethodRequiresProof = paymentMethods.find(m => m.id === selectedPaymentMethod)?.requiresProof;
   
   return (
     <CustomerLayout showBackButton={true}>
@@ -164,52 +193,97 @@ const Checkout = () => {
             </div>
           </Card>
           
-          {/* Payment Proof Upload */}
+          {/* Payment Section */}
           <Card title="Payment" className="h-fit">
             <form onSubmit={handleSubmit}>
-              <div className="mb-4">
-                <p className="font-medium text-gray-700 mb-2">Payment Instructions:</p>
-                <p className="text-gray-600 mb-2">
-                  Please transfer the total amount to the following account:
-                </p>
-                <div className="bg-gray-100 p-4 rounded mb-4">
-                  <p className="font-medium">Bank: BCA</p>
-                  <p className="font-medium">Account: 5931065361</p>
-                  <p className="font-medium">Name: Vincentius Geoffrey</p>
-                  <p className="font-medium">Amount: {formatIDR(totalAmount)}</p>
-                </div>
-                <p className="text-gray-600 mb-4">
-                  After making the payment, please upload your payment proof below.
-                </p>
-              </div>
-              
+              {/* Payment Method Selection */}
               <div className="mb-6">
                 <label className="block text-gray-700 font-medium mb-2">
-                  Upload Payment Proof: <span className="text-red-500">*</span>
+                  Payment Method: <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="w-full text-sm text-gray-500 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-                {!paymentFile && (
-                  <p className="mt-1 text-sm text-red-500">
-                    Payment proof is required to place an order
-                  </p>
-                )}
-                {filePreview && (
-                  <div className="mt-2">
-                    <p className="text-sm text-gray-600 mb-1">Preview:</p>
-                    <img
-                      src={filePreview}
-                      alt="Payment proof preview"
-                      className="max-w-xs h-auto rounded border"
-                    />
+                {paymentMethodsLoading ? (
+                  <div className="text-sm text-gray-500">Loading payment methods...</div>
+                ) : (
+                  <div className="space-y-2">
+                    {paymentMethods.map(method => (
+                      <div key={method.id} className="flex items-center">
+                        <input
+                          type="radio"
+                          id={`method-${method.id}`}
+                          name="paymentMethod"
+                          value={method.id}
+                          checked={selectedPaymentMethod === method.id}
+                          onChange={handlePaymentMethodChange}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                        />
+                        <label htmlFor={`method-${method.id}`} className="ml-2 block text-sm text-gray-700">
+                          {method.name}
+                        </label>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
+              
+              {/* Payment Instructions */}
+              {selectedPaymentMethod === 'BANK_TRANSFER' && (
+                <div className="mb-4">
+                  <p className="font-medium text-gray-700 mb-2">Bank Transfer Instructions:</p>
+                  <p className="text-gray-600 mb-2">
+                    Please transfer the total amount to the following account:
+                  </p>
+                  <div className="bg-gray-100 p-4 rounded mb-4">
+                    <p className="font-medium">Bank: BCA</p>
+                    <p className="font-medium">Account: 5931065361</p>
+                    <p className="font-medium">Name: Vincentius Geoffrey</p>
+                    <p className="font-medium">Amount: {formatIDR(totalAmount)}</p>
+                  </div>
+                  <p className="text-gray-600 mb-4">
+                    After making the payment, please upload your payment proof below.
+                  </p>
+                </div>
+              )}
+              
+              {selectedPaymentMethod === 'CASH' && (
+                <div className="mb-4">
+                  <p className="font-medium text-gray-700 mb-2">Cash Payment Instructions:</p>
+                  <p className="text-gray-600 mb-4">
+                    Please prepare {formatIDR(totalAmount)} in cash. 
+                    You'll pay directly at the cashier when you pick up your items.
+                  </p>
+                </div>
+              )}
+              
+              {/* Payment Proof Upload (only for methods that require it) */}
+              {selectedMethodRequiresProof && (
+                <div className="mb-6">
+                  <label className="block text-gray-700 font-medium mb-2">
+                    Upload Payment Proof: <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="w-full text-sm text-gray-500 p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
+                  />
+                  {!paymentFile && (
+                    <p className="mt-1 text-sm text-red-500">
+                      Payment proof is required for bank transfer
+                    </p>
+                  )}
+                  {filePreview && (
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-600 mb-1">Preview:</p>
+                      <img
+                        src={filePreview}
+                        alt="Payment proof preview"
+                        className="max-w-xs h-auto rounded border"
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
               
               {error && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -231,7 +305,7 @@ const Checkout = () => {
                   disabled={
                     createOrderMutation.isLoading || 
                     uploadPaymentProofMutation.isLoading || 
-                    !paymentFile
+                    (selectedMethodRequiresProof && !paymentFile)
                   }
                 >
                   {createOrderMutation.isLoading || uploadPaymentProofMutation.isLoading

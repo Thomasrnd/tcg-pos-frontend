@@ -87,6 +87,38 @@ const AdminDashboard = () => {
               )}
             </div>
           </div>
+          
+          {/* Add Payment Method breakdown */}
+          {!salesLoading && summary.paymentMethods && summary.paymentMethods.length > 0 && (
+            <div className="mt-6">
+              <h3 className="text-md font-semibold text-gray-700 mb-2">Payment Methods Today</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                {summary.paymentMethods.map(method => (
+                  <div 
+                    key={method.method} 
+                    className={`p-3 rounded-lg ${
+                      method.method === 'BANK_TRANSFER' ? 'bg-purple-50' :
+                      method.method === 'CASH' ? 'bg-green-50' :
+                      method.method === 'CREDIT_CARD' ? 'bg-blue-50' :
+                      method.method === 'E_WALLET' ? 'bg-indigo-50' :
+                      'bg-gray-50'
+                    }`}
+                  >
+                    <p className="text-xs font-medium text-gray-500">
+                      {method.method === 'BANK_TRANSFER' ? 'Bank Transfer' :
+                      method.method === 'CASH' ? 'Cash' :
+                      method.method === 'CREDIT_CARD' ? 'Credit Card' :
+                      method.method === 'E_WALLET' ? 'E-Wallet' :
+                      method.method}
+                    </p>
+                    <p className="text-lg font-bold mt-1">
+                      {formatIDR(method.total)} ({method.count})
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </Card>
         
         {/* Top Products */}

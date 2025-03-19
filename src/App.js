@@ -20,6 +20,7 @@ import Checkout from './pages/customer/Checkout';
 import OrderConfirmation from './pages/customer/OrderConfirmation';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import Reports from './pages/admin/Reports';
+import PaymentSettings from './pages/admin/PaymentSettings';
 
 // Create a client for React Query
 const queryClient = new QueryClient();
@@ -79,6 +80,11 @@ function App() {
               <Route path="/admin/categories" element={
                 <ProtectedRoute>
                   <CategoryManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/payment-settings" element={
+                <ProtectedRoute>
+                  <PaymentSettings />
                 </ProtectedRoute>
               } />
 
