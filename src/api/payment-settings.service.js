@@ -16,10 +16,20 @@ const getPaymentMethodDetail = async (method) => {
   return response.data;
 };
 
+const uploadQrisImage = async (id, formData) => {
+  const response = await apiClient.post(`/payment-settings/${id}/qris-image`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  });
+  return response.data;
+};
+
 const paymentSettingsService = {
   getAllPaymentMethodSettings,
   updatePaymentMethodSetting,
   getPaymentMethodDetail,
+  uploadQrisImage
 };
 
 export default paymentSettingsService;

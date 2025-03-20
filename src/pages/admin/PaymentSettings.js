@@ -6,6 +6,7 @@ import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import { useAuth } from '../../contexts/AuthContext';
 import paymentSettingsService from '../../api/payment-settings.service';
+import { formatImageUrl } from '../../utils/format';
 
 const PaymentSettings = () => {
   const { isMasterAdmin } = useAuth();
@@ -13,6 +14,8 @@ const PaymentSettings = () => {
   const [success, setSuccess] = useState('');
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({});
+  const [qrisImageFile, setQrisImageFile] = useState(null);
+  const [qrisImagePreview, setQrisImagePreview] = useState(null);
   const queryClient = useQueryClient();
 
   // Fetch payment method settings
@@ -44,6 +47,28 @@ const PaymentSettings = () => {
     }
   );
 
+  // Upload QRIS image mutation
+  const uploadQrisImageMutation = useMutation(
+    ({ id, file }) => {
+      const formData = new FormData();
+      formData.append('qrisImage', file);
+      
+      return paymentSettingsService.uploadQrisImage(id, formData);
+    },
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries('paymentMethodSettings');
+        setSuccess('QRIS image uploaded successfully');
+        setQrisImageFile(null);
+        setQrisImagePreview(null);
+      },
+      onError: (error) => {
+        console.error('Failed to upload QRIS image:', error);
+        setError(error.response?.data?.message || 'Failed to upload QRIS image');
+      }
+    }
+  );
+
   // Handle toggle enabled status
   const handleToggleEnabled = (setting) => {
     updateSettingMutation.mutate({
@@ -69,6 +94,34 @@ const PaymentSettings = () => {
     });
   };
 
+  // Handle QRIS image change
+  const handleQrisImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setQrisImageFile(file);
+      
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setQrisImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Upload QRIS image
+  const handleUploadQrisImage = () => {
+    if (!qrisImageFile) {
+      setError('Please select a QRIS image to upload');
+      return;
+    }
+    
+    uploadQrisImageMutation.mutate({
+      id: editingId,
+      file: qrisImageFile
+    });
+  };
+
   // Save the edited payment method
   const handleSave = () => {
     updateSettingMutation.mutate({
@@ -81,6 +134,8 @@ const PaymentSettings = () => {
   const handleCancel = () => {
     setEditingId(null);
     setEditData({});
+    setQrisImageFile(null);
+    setQrisImagePreview(null);
   };
 
   // Redirect if not a master admin
@@ -157,7 +212,7 @@ const PaymentSettings = () => {
                             type="text"
                             value={editData.name}
                             disabled={true}
-                            className="w-full p-2 border border-gray-300 rounded"
+                            className="w-full p-2 border border-gray-300 rounded bg-gray-100"
                           />
                           <p className="text-sm text-amber-600 font-medium mt-1 flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
@@ -264,6 +319,56 @@ const PaymentSettings = () => {
                           </div>
                         </div>
                       )}
+                      
+                      {/* QRIS Image Upload */}
+                      {setting.method === 'QRIS' && (
+                        <div className="mt-4 border-t pt-4">
+                          <h4 className="text-md font-medium mb-2">QRIS Image</h4>
+                          <div className="space-y-3">
+                            {setting.qrisImageUrl && (
+                              <div className="mb-2">
+                                <p className="text-sm font-medium mb-1">Current QRIS Image:</p>
+                                <img 
+                                  src={formatImageUrl(setting.qrisImageUrl)} 
+                                  alt="QRIS Code" 
+                                  className="max-w-xs h-auto border rounded"
+                                />
+                              </div>
+                            )}
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-1">
+                                Upload New QRIS Image
+                              </label>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleQrisImageChange}
+                                className="w-full text-sm text-gray-500 p-2 border border-gray-300 rounded"
+                              />
+                            </div>
+                            {qrisImagePreview && (
+                              <div>
+                                <p className="text-sm font-medium mb-1">Preview:</p>
+                                <img
+                                  src={qrisImagePreview}
+                                  alt="QRIS Preview"
+                                  className="max-w-xs h-auto border rounded"
+                                />
+                              </div>
+                            )}
+                            <div>
+                              <Button
+                                variant="primary"
+                                size="sm"
+                                onClick={handleUploadQrisImage}
+                                disabled={!qrisImageFile || uploadQrisImageMutation.isLoading}
+                              >
+                                {uploadQrisImageMutation.isLoading ? 'Uploading...' : 'Upload QRIS Image'}
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     // View mode
@@ -284,6 +389,24 @@ const PaymentSettings = () => {
                                 </div>
                               ) : (
                                 <p className="text-yellow-600">No bank account details configured</p>
+                              )}
+                            </div>
+                          )}
+                          
+                          {/* Show QRIS image if it's QRIS */}
+                          {setting.method === 'QRIS' && (
+                            <div className="mt-2 text-sm">
+                              {setting.qrisImageUrl ? (
+                                <div className="bg-gray-50 p-2 rounded">
+                                  <p className="font-medium mb-1">QRIS Image:</p>
+                                  <img
+                                    src={formatImageUrl(setting.qrisImageUrl)}
+                                    alt="QRIS Code"
+                                    className="w-32 h-auto border rounded"
+                                  />
+                                </div>
+                              ) : (
+                                <p className="text-yellow-600">No QRIS image configured</p>
                               )}
                             </div>
                           )}

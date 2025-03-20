@@ -26,19 +26,17 @@ const Checkout = () => {
     () => orderService.getPaymentMethods()
   );
   
-  // Fetch bank details if bank transfer is selected
-  const { data: bankDetailsData, isLoading: bankDetailsLoading } = useQuery(
-    ['paymentMethodDetail', 'BANK_TRANSFER'],
-    () => paymentSettingsService.getPaymentMethodDetail('BANK_TRANSFER'),
+  // Fetch payment method details based on selection
+  const { data: methodDetailsData, isLoading: methodDetailsLoading } = useQuery(
+    ['paymentMethodDetail', selectedPaymentMethod],
+    () => paymentSettingsService.getPaymentMethodDetail(selectedPaymentMethod),
     {
-      enabled: selectedPaymentMethod === 'BANK_TRANSFER'
+      enabled: !!selectedPaymentMethod
     }
   );
-
-  const bankDetails = bankDetailsData?.data;
-  const paymentMethods = paymentMethodsData?.data?.methods || [];
-
   
+  const paymentMethods = paymentMethodsData?.data?.methods || [];
+  const methodDetails = methodDetailsData?.data;
   
   // Redirect to products if cart is empty
   useEffect(() => {
@@ -175,6 +173,23 @@ const Checkout = () => {
   // Determine if selected payment method requires proof
   const selectedMethodRequiresProof = paymentMethods.find(m => m.id === selectedPaymentMethod)?.requiresProof;
   
+  const formatImageUrl = (path) => {
+    if (!path) return null;
+    
+    // If the path already includes http, it's an absolute URL
+    if (path.startsWith('http')) {
+      return path;
+    }
+    
+    // Extract the API base URL (without the /api part)
+    const baseUrl = process.env.REACT_APP_BASE_URL || '';
+    
+    // Ensure path starts with /
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+    
+    return `${baseUrl}${normalizedPath}`;
+  };
+  
   return (
     <CustomerLayout showBackButton={true}>
       <div className="mb-6">
@@ -238,7 +253,7 @@ const Checkout = () => {
                 )}
               </div>
               
-              {/* Payment Instructions */}
+              {/* Bank Transfer Instructions */}
               {selectedPaymentMethod === 'BANK_TRANSFER' && (
                 <div className="mb-4">
                   <p className="font-medium text-gray-700 mb-2">Bank Transfer Instructions:</p>
@@ -246,13 +261,13 @@ const Checkout = () => {
                     Please transfer the total amount to the following account:
                   </p>
                   <div className="bg-gray-100 p-4 rounded mb-4">
-                    {bankDetailsLoading ? (
+                    {methodDetailsLoading ? (
                       <p>Loading bank details...</p>
-                    ) : bankDetails && (bankDetails.bankName || bankDetails.accountNumber || bankDetails.accountHolder) ? (
+                    ) : methodDetails && (methodDetails.bankName || methodDetails.accountNumber || methodDetails.accountHolder) ? (
                       <>
-                        <p className="font-medium">Bank: {bankDetails.bankName || 'Not configured'}</p>
-                        <p className="font-medium">Account: {bankDetails.accountNumber || 'Not configured'}</p>
-                        <p className="font-medium">Name: {bankDetails.accountHolder || 'Not configured'}</p>
+                        <p className="font-medium">Bank: {methodDetails.bankName || 'Not configured'}</p>
+                        <p className="font-medium">Account: {methodDetails.accountNumber || 'Not configured'}</p>
+                        <p className="font-medium">Name: {methodDetails.accountHolder || 'Not configured'}</p>
                         <p className="font-medium">Amount: {formatIDR(totalAmount)}</p>
                       </>
                     ) : (
@@ -265,6 +280,35 @@ const Checkout = () => {
                 </div>
               )}
               
+              {/* QRIS Instructions */}
+              {selectedPaymentMethod === 'QRIS' && (
+                <div className="mb-4">
+                  <p className="font-medium text-gray-700 mb-2">QRIS Payment Instructions:</p>
+                  <p className="text-gray-600 mb-2">
+                    Please scan the QRIS code below with your mobile banking or e-wallet app:
+                  </p>
+                  {methodDetailsLoading ? (
+                    <p>Loading QRIS details...</p>
+                  ) : methodDetails && methodDetails.qrisImageUrl ? (
+                    <div className="flex justify-center my-4">
+                      <img
+                        src={formatImageUrl(methodDetails.qrisImageUrl)}
+                        alt="QRIS Code"
+                        className="max-w-xs border rounded"
+                      />
+                    </div>
+                  ) : (
+                    <p className="text-yellow-600 text-center py-4">
+                      QRIS code not available. Please use another payment method or contact staff.
+                    </p>
+                  )}
+                  <p className="text-gray-600 mb-4">
+                    After completing payment, please upload your payment proof below.
+                  </p>
+                </div>
+              )}
+              
+              {/* Cash Payment Instructions */}
               {selectedPaymentMethod === 'CASH' && (
                 <div className="mb-4">
                   <p className="font-medium text-gray-700 mb-2">Cash Payment Instructions:</p>
@@ -290,7 +334,7 @@ const Checkout = () => {
                   />
                   {!paymentFile && (
                     <p className="mt-1 text-sm text-red-500">
-                      Payment proof is required for bank transfer
+                      Payment proof is required for this payment method
                     </p>
                   )}
                   {filePreview && (

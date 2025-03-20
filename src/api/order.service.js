@@ -62,6 +62,23 @@ const getSalesSummary = async (params = {}) => {
   return response.data;
 };
 
+const getProductSalesReport = async (params = {}) => {
+  const response = await apiClient.get('/orders/analytics/product-sales', { params });
+  return response.data;
+};
+
+const getDailySalesReport = async (date) => {
+  const response = await apiClient.get('/orders/analytics/daily-sales', { 
+    params: { date } 
+  });
+  return response.data;
+};
+
+const getDateRangeSalesReport = async (params = {}) => {
+  const response = await apiClient.get('/orders/analytics/date-range-sales', { params });
+  return response.data;
+};
+
 const orderService = {
   createOrder,
   uploadPaymentProof,
@@ -73,6 +90,9 @@ const orderService = {
   getPendingOrdersCount,
   getSalesSummary,
   getPaymentMethods,
+  getProductSalesReport,
+  getDailySalesReport,
+  getDateRangeSalesReport
 };
 
 export default orderService;

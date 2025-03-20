@@ -1,3 +1,4 @@
+// src/pages/admin/AdminDashboard.js
 import React from 'react';
 import { useQuery } from 'react-query';
 import { Link } from 'react-router-dom';
@@ -5,13 +6,25 @@ import AdminLayout from '../../layouts/AdminLayout';
 import Card from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import orderService from '../../api/order.service';
+import reportService from '../../api/report.service';
 import { formatIDR } from '../../utils/format';
 
 const AdminDashboard = () => {
+  const today = new Date().toISOString().split('T')[0];
+  
   // Fetch sales summary
   const { data: salesData, isLoading: salesLoading } = useQuery(
     'salesSummary',
     () => orderService.getSalesSummary(),
+    {
+      refetchInterval: 60000 // Refetch every minute
+    }
+  );
+  
+  // Fetch today's detailed report for categories
+  const { data: todayReportData, isLoading: todayReportLoading } = useQuery(
+    ['dailySalesReport', today],
+    () => reportService.getDailySalesReport(today),
     {
       refetchInterval: 60000 // Refetch every minute
     }
@@ -25,7 +38,8 @@ const AdminDashboard = () => {
   );
   
   const summary = salesData?.data || {};
-  const pendingOrders = pendingData?.data?.count || 0;
+  const notifications = pendingData?.data || { total: 0 };
+  const todayReport = todayReportData?.data;
 
   // Format month name
   const formatMonth = (monthStr) => {
@@ -74,9 +88,9 @@ const AdminDashboard = () => {
               ) : (
                 <div>
                   <p className="text-3xl font-bold text-orange-500">
-                    {pendingOrders}
+                    {notifications.total}
                   </p>
-                  {pendingOrders > 0 && (
+                  {notifications.total > 0 && (
                     <Link to="/admin/orders">
                       <Button className="mt-2" variant="primary" size="sm">
                         View Orders
@@ -99,7 +113,7 @@ const AdminDashboard = () => {
                     className={`p-3 rounded-lg ${
                       method.method === 'BANK_TRANSFER' ? 'bg-purple-50' :
                       method.method === 'CASH' ? 'bg-green-50' :
-                      method.method === 'CREDIT_CARD' ? 'bg-blue-50' :
+                      method.method === 'QRIS' ? 'bg-blue-50' :
                       method.method === 'E_WALLET' ? 'bg-indigo-50' :
                       'bg-gray-50'
                     }`}
@@ -107,7 +121,7 @@ const AdminDashboard = () => {
                     <p className="text-xs font-medium text-gray-500">
                       {method.method === 'BANK_TRANSFER' ? 'Bank Transfer' :
                       method.method === 'CASH' ? 'Cash' :
-                      method.method === 'CREDIT_CARD' ? 'Credit Card' :
+                      method.method === 'QRIS' ? 'QRIS' :
                       method.method === 'E_WALLET' ? 'E-Wallet' :
                       method.method}
                     </p>
@@ -118,6 +132,30 @@ const AdminDashboard = () => {
                 ))}
               </div>
             </div>
+          )}
+        </Card>
+        
+        {/* Today's Product Categories */}
+        <Card title="Today's Product Categories" className="mb-8">
+          {todayReportLoading ? (
+            <p className="text-center py-4">Loading category data...</p>
+          ) : todayReport?.categorySales?.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+              {todayReport.categorySales.map(category => (
+                <div 
+                  key={category.name} 
+                  className="bg-blue-50 p-4 rounded-lg"
+                >
+                  <h4 className="text-sm font-medium text-gray-700 mb-1">{category.name}</h4>
+                  <p className="text-2xl font-bold">{formatIDR(category.revenue)}</p>
+                  <p className="text-sm text-gray-500">{category.itemsSold} items sold</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-center py-4 text-gray-600">
+              No category sales data available for today yet.
+            </p>
           )}
         </Card>
         
@@ -218,7 +256,7 @@ const AdminDashboard = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm font-medium text-gray-900">
                           {formatIDR(order.totalAmount)}
                         </div>
                       </td>
