@@ -1,3 +1,4 @@
+// src/api/report.service.js
 import apiClient from './client';
 
 const getProductSalesReport = async (params = {}) => {
@@ -12,9 +13,15 @@ const getDailySalesReport = async (date) => {
   return response.data;
 };
 
+const getDateRangeSalesSummary = async (params = {}) => {
+  const response = await apiClient.get('/orders/analytics/date-range', { params });
+  return response.data;
+};
+
 const reportService = {
   getProductSalesReport,
   getDailySalesReport,
+  getDateRangeSalesSummary,
 };
 
 export default reportService;

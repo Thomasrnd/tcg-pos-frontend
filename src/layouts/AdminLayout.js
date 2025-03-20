@@ -21,7 +21,12 @@ const AdminLayout = ({ children }) => {
     }
   );
 
-  const pendingCount = pendingData?.data?.count || 0;
+  const notifications = pendingData?.data || { 
+    total: 0,
+    paymentUploadedCount: 0,
+    cashVerifiedCount: 0,
+    pendingCount: 0 
+  };
   
   const handleLogout = () => {
     logout();
@@ -71,10 +76,23 @@ const AdminLayout = ({ children }) => {
                       }`}
                     >
                       {item.name}
-                      {item.name === 'Orders' && pendingCount > 0 && (
-                        <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center rounded-full bg-red-500 text-white text-xs">
-                          {pendingCount}
-                        </span>
+                      {item.name === 'Orders' && notifications.total > 0 && (
+                        <div className="group relative">
+                          <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center rounded-full bg-red-500 text-white text-xs">
+                            {notifications.total}
+                          </span>
+                          <div className="absolute hidden group-hover:block right-0 mt-2 w-60 bg-white rounded-md shadow-lg p-2 text-xs z-10 text-gray-800">
+                            {notifications.paymentUploadedCount > 0 && (
+                              <p className="py-1">Payment Uploaded: <span className="font-bold">{notifications.paymentUploadedCount}</span></p>
+                            )}
+                            {notifications.cashVerifiedCount > 0 && (
+                              <p className="py-1">Cash Orders Ready: <span className="font-bold">{notifications.cashVerifiedCount}</span></p>
+                            )}
+                            {notifications.pendingCount > 0 && (
+                              <p className="py-1">Pending Orders: <span className="font-bold">{notifications.pendingCount}</span></p>
+                            )}
+                          </div>
+                        </div>
                       )}
                     </Link>
                   ))}
@@ -140,9 +158,9 @@ const AdminLayout = ({ children }) => {
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {item.name}
-                  {item.name === 'Orders' && pendingCount > 0 && (
+                  {item.name === 'Orders' && notifications.total > 0 && (
                     <span className="absolute top-2 -right-1 h-5 w-5 flex items-center justify-center rounded-full bg-red-500 text-white text-xs">
-                      {pendingCount}
+                      {notifications.total}
                     </span>
                   )}
                 </Link>
